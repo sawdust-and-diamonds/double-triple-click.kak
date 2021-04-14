@@ -58,7 +58,7 @@ hook global User InsertDoubleClick %sh{
 ```
 
 ## Other cool plugins recommended for beginners
-[kak-lsp](https://github.com/kak-lsp/kak-lsp) — 
+[kak-lsp](https://github.com/kak-lsp/kak-lsp) — Turn kak into a modern IDE, with LSP support for any language that has one
 
 [kakoune.cr](https://github.com/alexherbo2/kakoune.cr) — The main way to access kak from outside of kak
 
