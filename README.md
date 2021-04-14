@@ -21,7 +21,7 @@ Simply install, and double- or triple- clicking should work as in most IDEs. Dou
 
 ## Usage (Customized behaviour)
 
-The plugin adds four new hooks to help manage your own custom behaviour for double- and triple-clicks:
+The plugin adds four new interfaces to the User hook for custom double- and triple-click behaviour:
 
 ```
 NormalDoubleClick
@@ -30,30 +30,36 @@ InsertDoubleClick
 InsertTripleClick
 ```
 
-Each of these act in a similar way. They are simply called when the required event happens. To alter the default behaviour, re-bind them after the line where you've put `plug 'sawdust-and-diamonds/double-triple-click.kak'` in your kakrc. Below are some examples of how to do this:
+Each of these act in a similar way--they're simply called when the required event happens. To alter the default behaviour, re-bind them after the line where you've put `plug 'sawdust-and-diamonds/double-triple-click.kak'` in your kakrc. Below are some examples of how to do this:
 
 ##### Triple-click to select a paragraph
+```
+hook global User NormalTripleClick %{ exec '<a-a>p' }
+hook global User InsertTripleClick %{ exec '<a-;><a-a>p' }
+```
 
+##### Double-click to go to definition in LSP, select word otherwise (requires LSP plugin)
 ```
-hook global NormalTripleClick %{ exec '<a-a>p' }
-hook global InsertTripleClick %{ exec '<a-;><a-a>p' }
-```
-
-##### Double-click to go to defintion in LSP, select word otherwise (requires LSP plugin)
-```
-hook global NormalDoubleClick %sh{
-    # ... do some stuff here
+hook global User NormalDoubleClick %sh{
+    cur_sel=$kak_val_selection
+    echo "try %{lsp-definition} catch %{nop}"
+    echo "eval %sh{[ \$kak_val_selection = $cur_sel ] && echo \"exec '<a-a>w'\"}"
 }
-hook global InsertDoubleClick %sh{
-    # ... do some stuff here
+hook global User InsertDoubleClick %sh{
+    cur_sel=$kak_val_selection
+    echo "try %{lsp-definition} catch %{nop}"
+    echo "eval %sh{[ \$kak_val_selection = $cur_sel ] && echo \"exec '<a-;><a-a>w'\"}"
 }
 ```
 
 ## Other cool plugins recommended for beginners
-
+[kak-lsp](https://github.com/kak-lsp/kak-lsp)
+[kakoune.cr](https://github.com/alexherbo2/kakoune.cr) -- The main way to access kak from outside of kak
+[kakoune-mirror](https://github.com/Delapouite/kakoune-mirror) -- Great example of a cool & useful new user mode
+[kakoune-themes](https://github.com/anhsirk0/kakoune-themes/) -- Best repository of lovely new themes
 
 ## License
 
-I'm distributing this under the UNLICENSE because I want you to use the double-click functionality.
+I want to distribute this under the UNLICENSE because I would like you to consider how to use the double-click functionality in your own user modes in your own projects. Alternatively, if this does not apply, please refer to the MIT license.
 
 Perhaps one day, however, there might even be a native NormalDoubleClick hook in the compiled kakoune binaries :).
