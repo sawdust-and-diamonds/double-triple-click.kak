@@ -74,4 +74,4 @@ hook global User InsertDoubleClick %sh{
 
 I leave this little scrap of code, for you, in the public domain under the UNLICENSE—because I would like you to consider how to use the multi-click functionality in your own user modes and in your own kakoune projects! Alternatively, if the public domain law does not apply in your country, please refer to the MIT license.
 
-Perhaps one day, however, there might even be a native NormalDoubleClick hook in the compiled kakoune binaries 😁.
+Perhaps one day, however, there might even be a native NormalDoubleClick hook in the compiled kakoune binaries 😁
