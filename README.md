@@ -36,7 +36,7 @@ InsertDoubleClickRelease
 InsertTripleClickRelease
 ```
 
-It seems like a lot, but these hooks only contain three bits of information: User mode, click count and press/release status.
+It seems like a lot, but these names only contain three bits of information: User mode, click count and press/release status.
 
 Each of these act in a similar way—they're simply sent as parameters to the User hook when the required event happens. To alter the default behaviour, first disable the default hooks by setting `disable_doubleclick_defaults` to **true**, which you must do in your kakrc. Then, you can re-bind them (anywhere after the line where you've put `plug 'sawdust-and-diamonds/double-triple-click.kak'` in your kakrc, if you're using plug). To read more about how hooks work, just type `:doc hooks` while in kakoune.
 
@@ -88,9 +88,9 @@ hook global User InsertDoubleClickPress %sh{
 
 Two options are defined:
 
-`disable_doubleclick_defaults` lets you turn off (or on) the IDE-like behaviour.
+`disable_doubleclick_defaults` — Lets you turn off (or on) the IDE-like behaviour.
 
-`doubleclick_wait` sets the maximum time, in seconds, that kak will wait for you to complete a series of clicks.
+`doubleclick_wait` — Sets the maximum time, in seconds, that kak will wait for you to complete a series of clicks.
 
 ## Other cool plugins recommended for beginners
 [kak-lsp](https://github.com/kak-lsp/kak-lsp) — Turn kak into a modern IDE, with LSP support for any language that has one
