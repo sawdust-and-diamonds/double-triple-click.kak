@@ -32,12 +32,14 @@ InsertDoubleClick
 InsertTripleClick
 ```
 
-Each of these act in a similar way—they're simply sent as parameters to the User hook when the required event happens. To alter the default behaviour, re-bind them after the line where you've put `plug 'sawdust-and-diamonds/double-triple-click.kak'` in your kakrc. To read more about how hooks work, just type `:doc hooks` while in kakoune.
+Each of these act in a similar way—they're simply sent as parameters to the User hook when the required event happens. To alter the default behaviour, first disable the default hooks by setting `disable_doubleclick_defaults` to **true**, which you must do in your kakrc. Then, you can re-bind them (anywhere after the line where you've put `plug 'sawdust-and-diamonds/double-triple-click.kak'` in your kakrc, if you're using plug). To read more about how hooks work, just type `:doc hooks` while in kakoune.
 
 Below are some concrete examples of how to do this:
 
 ##### Triple-click to select a paragraph
 ```
+set-option global disable_doubleclick_defaults true
+
 hook global User NormalTripleClick %{ exec '<a-a>p' }
 hook global User InsertTripleClick %{ exec '<a-;><a-a>p' }
 ```
@@ -45,6 +47,8 @@ hook global User InsertTripleClick %{ exec '<a-;><a-a>p' }
 ##### Double-click to go to definition in LSP, select word otherwise (requires LSP plugin)
 These are rather complicated, but should at least help you open up the possibility of doing cool new things:
 ```
+set-option global disable_doubleclick_defaults true
+
 hook global User NormalDoubleClick %sh{
     cur_sel=$kak_val_selection
     echo "try %{lsp-definition} catch %{nop}"

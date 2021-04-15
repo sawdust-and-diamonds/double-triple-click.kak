@@ -8,6 +8,10 @@
 # Maximum time, in seconds, between clicks that will register a double click.
 declare-option str doubleclick_wait 0.3
 
+# Option: disable_doubleclick_defaults
+# If set to true, turns off default hooks.
+declare-option bool disable_doubleclick_defaults false
+
 ## Hooks
 # These hooks determine the behaviour of your double- and triple- clicks.
 # The default behaviour should be quite inoffensive, so I have left them on by default.
@@ -16,23 +20,22 @@ declare-option str doubleclick_wait 0.3
 # With a little bit of effort, you can probably also add new click behaviours for other
 # modes, but you might have to use the RawKey hook to do it.
 
-# We use try/catch here because we may often click on blank spaces.
-
-hook global User NormalDoubleClick %{
-    # Select word
-    try %{exec '<a-i>w'} catch %{nop}
-}
-hook global User NormalTripleClick %{
-    # Select line.
-	try %{exec 'x'} catch %{nop} 
-}
-hook global User InsertDoubleClick %{
-    # Select word (from insert mode)
-    try %{exec '<a-;><a-i>w'} catch %{nop}
-}
-hook global User InsertTripleClick %{
-    # Select word (from insert mode)
-    try %{exec '<a-;>x'} catch %{nop}
+# I've wrapped these hooks in an 'eval' command so that they can be turned off.
+# In your own configuration files, you don't need to do that.
+# We also try/catch here because we may often click on blank spaces.
+hook -once global KakBegin .* %{
+    eval %sh{
+        # Don't load hooks if flag set to true
+        [ "$kak_opt_disable_doubleclick_defaults" = "true" ] && exit
+        # Select word (normal)
+        echo "hook global User NormalDoubleClick %{try %{exec '<a-i>w'} catch %{nop}}"
+        # Select whole line (normal)
+        echo "hook global User NormalTripleClick %{try %{exec 'x'} catch %{nop}}"
+        # Select word (insert)
+        echo "hook global User InsertDoubleClick %{try %{exec '<a-;><a-i>w'} catch %{nop}}"
+        # Select whole line (insert)
+        echo "hook global User InsertTripleClick %{try %{exec '<a-;>x'} catch %{nop}}"
+    }
 }
 
 ## Hidden options, used by the system
