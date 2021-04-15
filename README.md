@@ -42,7 +42,7 @@ Each of these act in a similar way—they're simply sent as parameters to the Us
 
 It's important to consider whether you want your functionality to trigger on the instant the mouse button is pressed, or later when it's released. Kakoune seems to process a mouse click twice, first on the press and secondly on the release. You probably want things to happen on the initial "press", but kakoune's behaviour may interfere with that (as it will reset the selection and cursor position on mouse release).
 
-Much of the time, e.g. to select areas of text, you'll want to repeat the hook action in both cases, in which case, you'll only need to define four hooks using wildcards, like this:
+Much of the time, e.g. to select areas of text, you'll want to repeat the hook action in both cases; in which case, you'll only need to define four hooks using wildcards, like this:
 ```
 hook window User NormalDoubleClick* %{...}
 hook window User NormalTripleClick* %{...}
@@ -54,7 +54,7 @@ I'm sure this is confusing, but if you play around with it, you'll soon see how 
 
 Hopefully it will help to have some concrete examples of how to implement new hooks:
 
-##### Triple-click to select a paragraph
+### Triple-click to select a paragraph
 ```
 # Turn off the defaults
 set-option window disable_doubleclick_defaults true
@@ -67,7 +67,7 @@ hook window User NormalDoubleClick* %{ exec '<a-a>w' }
 hook window User InsertDoubleClick* %{ exec '<a-;><a-a>w' }
 ```
 
-##### Double-click to go to definition in LSP, select word otherwise (requires LSP plugin)
+### Double-click to go to definition in LSP, select word otherwise (requires LSP plugin)
 These are rather complicated, but should at least help you open up the possibility of doing cool new things:
 ```
 set-option window disable_doubleclick_defaults true
@@ -84,7 +84,7 @@ hook global User InsertDoubleClickPress %sh{
 }
 ```
 
-### User options
+## User options
 
 Two options are defined:
 
