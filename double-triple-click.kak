@@ -12,31 +12,6 @@ declare-option str doubleclick_wait 0.3
 # If set to true, turns off default hooks.
 declare-option bool disable_doubleclick_defaults false
 
-## Hooks
-# These hooks determine the behaviour of your double- and triple- clicks.
-# The default behaviour should be quite inoffensive, so I have left them on by default.
-# You may re-define them in your kakrc (or here) to do whatever you want them to do.
-
-# With a little bit of effort, you can probably also add new click behaviours for other
-# modes, but you might have to use the RawKey hook to do it.
-
-# I've wrapped these hooks in an 'eval' command so that they can be turned off.
-# In your own configuration files, you don't need to do that.
-# We also try/catch here because we may often click on blank spaces.
-hook -once global KakBegin .* %{
-    eval %sh{
-        # Don't load hooks if flag set to true
-        [ "$kak_opt_disable_doubleclick_defaults" = "true" ] && exit
-        # Select word (normal)
-        echo "hook global User NormalDoubleClick %{try %{exec '<a-i>w'} catch %{nop}}"
-        # Select whole line (normal)
-        echo "hook global User NormalTripleClick %{try %{exec 'x'} catch %{nop}}"
-        # Select word (insert)
-        echo "hook global User InsertDoubleClick %{try %{exec '<a-;><a-i>w'} catch %{nop}}"
-        # Select whole line (insert)
-        echo "hook global User InsertTripleClick %{try %{exec '<a-;>x'} catch %{nop}}"
-    }
-}
 
 ## Hidden options, used by the system
 
@@ -54,27 +29,53 @@ declare-option -hidden int just_clicked 0
 declare-option -hidden int cur_click_count 0
 
 ###############################################################################
+#                      "Default" click behaviour                              #
+###############################################################################
+
+# I found it simpler to write the default behaviours as their own commands,
+# rather than hooks.
+# They didn't have to be implemented this way, but it better explains the logic
+# of the program.
+
+# When designing your own hooks, you might want to use these commands as your
+# base.
+
+# Note: We use try/catch here because, often, we might click on blank spaces.
+define-command -override -hidden doubleclick-default-normal %{
+    try %{exec '<a-i>w'} catch %{nop} # Select word
+}
+define-command -override -hidden tripleclick-default-normal %{
+    try %{exec 'x'} catch %{nop} # Select line
+}
+define-command -override -hidden doubleclick-default-insert %{
+    try %{exec '<a-;><a-i>w'} catch %{nop} # Select word (insert mode)
+}
+define-command -override -hidden tripleclick-default-insert %{
+    try %{exec '<a-;>x'} catch %{nop} # Select line (insert mode)
+}
+
+###############################################################################
 #                              Functionality                                  #
 ###############################################################################
 
 # Here we hook into the basic mouse-click actions:
-hook global NormalKey '<mouse:press:left:.*>' 'wait_for_next_click'
-hook global InsertKey '<mouse:press:left:.*>' 'wait_for_next_click'
-hook global NormalKey '<mouse:press:left:.*>' 'inc_click_count normal'
-hook global InsertKey '<mouse:press:left:.*>' 'inc_click_count insert'
-hook global NormalKey '<mouse:release:left:.*>' 'do_on_click normal-release'
-hook global InsertKey '<mouse:release:left:.*>' 'do_on_click insert-release'
+hook global NormalKey '<mouse:press:left:.*>' 'wait-for-next-click'
+hook global InsertKey '<mouse:press:left:.*>' 'wait-for-next-click'
+hook global NormalKey '<mouse:press:left:.*>' 'inc-click-count normal'
+hook global InsertKey '<mouse:press:left:.*>' 'inc-click-count insert'
+hook global NormalKey '<mouse:release:left:.*>' 'do-on-click normal-release'
+hook global InsertKey '<mouse:release:left:.*>' 'do-on-click insert-release'
 
 # Increment the current click count--is it a single, double or triple click?
-# Runs synchronously with wait_for_next_click.
-define-command inc_click_count -override -hidden -params 1 %{
+# Runs synchronously with wait-for-next-click.
+define-command inc-click-count -override -hidden -params 1 %{
     eval %sh{
         echo "set-option global just_clicked $((kak_opt_just_clicked + 1))"
         if [ "$kak_opt_just_clicked" -eq 3 ]; then
             echo "set-option global just_clicked 1" 
         fi
     } 
-    do_on_click %arg{1}
+    do-on-click %arg{1}
 }
 
 # For the default behaviour (select word/line on double/triple click),
@@ -96,22 +97,31 @@ define-command inc_click_count -override -hidden -params 1 %{
 # Or, you may prefer to have your hook execute something on mouse-release.
 # The delay will be noticeable, but this is still quite viable.
  
-define-command do_on_click -override -hidden -params 1 %{
+define-command do-on-click -override -hidden -params 1 %{
     eval %sh{
+        opt=$kak_opt_disable_doubleclick_defaults
         mode=$1
         if   [ "$kak_opt_just_clicked" -eq 2 ]; then
             case $mode in
-                normal)         echo "trigger-user-hook NormalDoubleClick" ;;
-                insert)         echo "trigger-user-hook InsertDoubleClick" ;;
-                normal-release) echo "trigger-user-hook NormalDoubleClick" ;;
-                insert-release) echo "trigger-user-hook InsertDoubleClick" ;;
+                normal)         [ $opt = false ] && echo "doubleclick-default-normal"
+                                                    echo "trigger-user-hook NormalDoubleClickPress";;
+                insert)         [ $opt = false ] && echo "doubleclick-default-insert"
+                                                    echo "trigger-user-hook InsertDoubleClickPress";;
+                normal-release) [ $opt = false ] && echo "doubleclick-default-normal"
+                                                    echo "trigger-user-hook NormalDoubleClickRelease";;
+                insert-release) [ $opt = false ] && echo "doubleclick-default-insert"
+                                                    echo "trigger-user-hook InsertDoubleClickRelease";;
             esac
         elif [ "$kak_opt_just_clicked" -eq 3 ]; then
             case $mode in
-                normal)         echo "trigger-user-hook NormalTripleClick" ;;
-                insert)         echo "trigger-user-hook InsertTripleClick" ;;
-                normal-release) echo "trigger-user-hook NormalTripleClick" ;;
-                insert-release) echo "trigger-user-hook InsertTripleClick" ;;
+                normal)         [ $opt = false ] && echo "tripleclick-default-normal";
+                                                    echo "trigger-user-hook NormalTripleClickPress";;
+                insert)         [ $opt = false ] && echo "tripleclick-default-insert";
+                                                    echo "trigger-user-hook InsertTripleClickPress";;
+                normal-release) [ $opt = false ] && echo "tripleclick-default-normal";
+                                                    echo "trigger-user-hook NormalTripleClickRelease";;
+                insert-release) [ $opt = false ] && echo "tripleclick-default-insert";
+                                                    echo "trigger-user-hook InsertTripleClickRelease";;
             esac
         fi
     }
@@ -135,7 +145,7 @@ define-command do_on_click -override -hidden -params 1 %{
 # If you click repeatedly in the same space, this routine spawns multiple times,
 # but only the final spawn will end the click series.
 
-define-command wait_for_next_click -override -hidden %{
+define-command wait-for-next-click -override -hidden %{
     eval %sh{(
         n=$(( kak_opt_cur_click_count + 1 ))
         echo "set-option global cur_click_count $n" | kak -p "$kak_session"
